@@ -2,6 +2,7 @@
 renderer: all pygame drawing lives here, kept separate from game logic.
 """
 
+import math
 import pygame
 
 WIDTH, HEIGHT = 800, 500
@@ -61,4 +62,12 @@ def draw_scores(surface, font, player_score, computer_score):
     comp_surf = font.render(f"Computer: {computer_score}", True, COLOR_COMPUTER)
     comp_rect = comp_surf.get_rect(center=(WIDTH * 3 // 4, MARGIN + 20))
     surface.blit(comp_surf, comp_rect)
+
+
+def draw_timer(surface, font, time_remaining):
+    seconds = int(math.ceil(time_remaining))
+    timer_surf = font.render(f"Time: {seconds}s", True, COLOR_TEXT)
+    timer_rect = timer_surf.get_rect(center=(WIDTH // 2, MARGIN + 20))
+    surface.blit(timer_surf, timer_rect)
+
 

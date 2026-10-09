@@ -19,6 +19,7 @@ PLAYER_SPEED = 6
 PUCK_RADIUS = 12
 PADDLE_RADIUS = 28
 INITIAL_PUCK_SPEED = 4.5
+MATCH_DURATION = 30.0
 
 
 class GameEngine:
@@ -39,6 +40,8 @@ class GameEngine:
         self.ai = ComputerAI()
         self.player_score = 0
         self.computer_score = 0
+        self.time_remaining = MATCH_DURATION
+        self.game_over = False
 
     def _launch_puck(self):
         angle_choices = [0.3, 0.6, -0.3, -0.6]
@@ -48,6 +51,8 @@ class GameEngine:
         self.puck.vy = INITIAL_PUCK_SPEED * vy_factor
 
     def handle_input(self, keys_pressed):
+        if self.game_over:
+            return
         import pygame
         dx = dy = 0
         if keys_pressed[pygame.K_UP]:
@@ -60,7 +65,16 @@ class GameEngine:
             dx += PLAYER_SPEED
         self.player.move_by(dx, dy)
 
-    def update(self):
+    def update(self, dt=1 / 60):
+        if self.game_over:
+            return
+
+        self.time_remaining -= dt
+        if self.time_remaining <= 0:
+            self.time_remaining = 0
+            self.game_over = True
+            return
+
         self.ai.update(self.computer, self.puck)
 
         self.puck.move()
@@ -95,9 +109,17 @@ class GameEngine:
             return "Computer"
         return "Draw"
 
+    def get_winner_message(self):
+        winner = self.determine_winner()
+        if winner == "Draw":
+            return "Draw"
+        return f"{winner} Wins!"
+
     def reset(self):
         self.player_score = 0
         self.computer_score = 0
+        self.time_remaining = MATCH_DURATION
+        self.game_over = False
         self.puck.x, self.puck.y = WIDTH / 2, HEIGHT / 2
         self._launch_puck()
 
@@ -113,3 +135,7 @@ class GameEngine:
         renderer.draw_paddle(surface, self.computer, renderer.COLOR_COMPUTER)
         renderer.draw_puck(surface, self.puck)
         renderer.draw_scores(surface, font, self.player_score, self.computer_score)
+        renderer.draw_timer(surface, font, self.time_remaining)
+
+        if self.game_over:
+            renderer.draw_banner(surface, font, self.get_winner_message())
