@@ -43,9 +43,10 @@ class GameEngine:
         self.time_remaining = MATCH_DURATION
         self.game_over = False
 
-    def _launch_puck(self):
+    def _launch_puck(self, direction=None):
         angle_choices = [0.3, 0.6, -0.3, -0.6]
-        direction = random.choice([-1, 1])
+        if direction is None:
+            direction = random.choice([-1, 1])
         vy_factor = random.choice(angle_choices)
         self.puck.vx = INITIAL_PUCK_SPEED * direction
         self.puck.vy = INITIAL_PUCK_SPEED * vy_factor
@@ -86,6 +87,9 @@ class GameEngine:
         self._handle_goals()
 
     def _handle_goals(self):
+        if self.game_over:
+            return
+
         if self.puck.x - self.puck.radius < MARGIN:
             if GOAL_TOP < self.puck.y < GOAL_BOTTOM:
                 self.computer_score += 1
@@ -120,13 +124,16 @@ class GameEngine:
         self.computer_score = 0
         self.time_remaining = MATCH_DURATION
         self.game_over = False
-        self.puck.x, self.puck.y = WIDTH / 2, HEIGHT / 2
-        self._launch_puck()
+        self._reset_puck()
 
-    def _reset_puck(self):
-        self.puck.x, self.puck.y = WIDTH / 2, HEIGHT / 2
-        self.puck.vx = 0
-        self.puck.vy = 0
+    def _reset_puck(self, direction=None):
+        self.puck.x = WIDTH / 2
+        self.puck.y = HEIGHT / 2
+        if not self.game_over:
+            self._launch_puck(direction=direction)
+        else:
+            self.puck.vx = 0.0
+            self.puck.vy = 0.0
 
     def draw(self, surface, font):
         from game import renderer
